@@ -109,7 +109,7 @@ function addEmployee() {
             choices: function() {
               var choiceArray = [];
               for (var i = 0; i < results.length; i++) {
-                choiceArray.push(results[i].manager_id);
+                choiceArray.push(results[i].manager_id); //coem back to fix manager id//
               }
               return choiceArray;
             },
@@ -318,32 +318,3 @@ function addDepartment() {
 //   console.log(departmentTable);
 
 
-//         // switch (answer.choice) {
-//         //     case "Add Employee?":
-//         //         addEmployee();
-//         //       break;
-      
-//         //     case "Add Role?":
-//         //         addRole();
-//         //       break;
-      
-//         //     case "Add Department?":
-//         //         addDepartment();
-//         //       break;
-      
-//         //     case "View All Employees?":
-//         //         viewAllEmployees();
-//         //       break;
-      
-//         //     case "View All Roles?":
-//         //         viewAllRoles();
-//         //       break;
-//         //     case "View all Deparments":
-//         //         viewAllDepartments();
-//         //       break;
-//         //     case "Update Employee":
-//         //         updateEmployee();
-//         //       break;
-//         //     }
-//     })
-// }
