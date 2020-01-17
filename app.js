@@ -54,10 +54,10 @@ function startPrompt() {
                 viewAllEmployees();
               break;
       
-            case "View All Roles?":
+            case "View All Employee By Roles?":
                 viewAllRoles();
               break;
-            case "View all Deparments":
+            case "View all Emplyees By Deparments":
                 viewAllDepartments();
               break;
             case "Update Employee":
@@ -115,8 +115,8 @@ function addEmployee() {
             {
               first_name: val.firstname,
               last_name: val.lastname,
-              // manager_id: val.choice,
-              // role_id: val.titleId
+              manager_id: val.choice,
+              role_id: val.titleId
               
             },
             function(err) {
@@ -169,16 +169,16 @@ function addRole() {
           message: "What is the Salary?"
 
         } 
-    ]).then(function(answer) {
+    ]).then(function(res) {
         connection.query(
             "INSERT INTO role SET ?",
             {
-              title: answer.title,
-              salary: answer.salary,
+              title: res.title,
+              salary: res.salary,
             },
             function(err) {
                 if (err) throw err
-                console.log("You just added a role");
+                console.table(res);
                 startPrompt();
             }
         )
@@ -194,16 +194,16 @@ function addDepartment() {
           type: "input",
           message: "What Department would you like to add?"
         }
-    ]).then(function(answer) {
+    ]).then(function(res) {
         var query = connection.query(
             "INSERT INTO department SET ?",
             {
-              name: answer.name
+              name: res.name
             
             },
-            function(err) {
+            function(err, res) {
                 if (err) throw err
-                console.log("You just added a department");
+                console.table(res);
                 startPrompt();
             }
         )
@@ -216,108 +216,75 @@ function addDepartment() {
       connection.query("SELECT employee.first_name, employee.last_name, role.title, role.salary, department.name AS Department FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id ORDER BY employee.id", 
       function(err, res) {
         if (err) throw err
-    console.log(res);
+    console.table(res);
        
-    }).then(function(err, res) {
-      if (err) throw err
-     employeeTable = printTable(res);
-    
     })
-    return employeeTable;
   }
-//============= View Employees By Department ==========================//
-//  function viewAllRoles() {
-//     readRoleItems().then(
-//         function(err) {
-//             if (err) throw err
-//             console.log("You just added an employee");
-//             startPrompt();
-//         }
-//     )
+//============= View All Roles ==========================//
+ function viewAllRoles() {
+  connection.query("SELECT role.title FROM role", 
+  function(err, res) {
+    if (err) throw err
+    console.table(res)
+  })
    
-// }
-//============= View Employees By Department ==========================//
-// function viewAllDepartments() {
-//     readDepartments().then(
-//         function(err) {
-//             if (err) throw err
-//             console.log("You just added an employee");
-//             startPrompt();
-//         }
-//     )
-   
-// }
-
-  //============= Update Employee ==========================//
-//   function updateEmployee() {
-//       inquirer.prompt([
-//           {
-//             name: "updateEmployee",
-//             type: "input",
-//             message: "What "
-//           }
-//       ])
-//     console.log("Updating employees...\n");
-//     var query = connection.query(
-//       "UPDATE role SET ? WHERE ?",
-//       [
-//         {
-//           title: "Seinor Engineer"
-//         },
-//         {
-//           salary: 90000,
-//         }
-//       ],
-//       function(err, res) {
-//         console.log(res.affectedRows + " employee updated!\n");
-
-//       }
-//     );
-//   }
-
-//================ Read Items =================================//
-//Employee Table...........
-// function readEmployeeItems(cb) {
-//     connection.query("SELECT * FROM employee ", function(err, res) {
-//         if (err) throw err;
-//         cb(res);
-//     })
-// }
-//Role table.............
-// function readRoleItems(cb) {
-//     connection.query("SELECT * FROM role ", function(err, res) {
-//         if (err) throw err;
-//         cb(res);
-//     })
-// }
-//Role table.............
-// function readDepartments(cb) {
-//     connection.query("SELECT * FROM department ", function(err, res) {
-//         if (err) throw err;
-//         cb(res);
-//     })
-// }
-
-
-
-function printTable(res) {
-  var viewTable = cTable.getTable([{res}])
-  return viewTable;
+}
+//============= View All Employees By Departments ==========================//
+function viewAllDepartments() {
+  connection.query("SELECT employee.first_name, employee.last_name, department.name AS Department FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id ORDER BY employee.id;", 
+    function(err, res) {
+      if (err) throw err
+      console.table(res);
+  })
+  
 }
 
+  //============= Update Employee ==========================//
+  function updateEmployee() {
+      inquirer.prompt([
+          {
+            name: "employeeFristName",
+            type: "input",
+            message: "What is the Employee's first name? "
+          },
+          {
+            name: "employeetitle",
+            type: "input",
+            message: "What is the Employee's title "
+          },
+          {
+            name: "employeename",
+            type: "input",
+            message: "What "
+          },
+          {
+            name: "employeename",
+            type: "input",
+            message: "What "
+          },
+          {
+            name: "employeename",
+            type: "input",
+            message: "What "
+          }
+      ])
+    console.log("Updating employees...\n");
+    var query = connection.query(
+      "UPDATE employee SET ? WHERE ?",
+      [
+        {
+          title: "Seinor Engineer"
+        },
+        {
+          salary: 90000,
+        }
+      ],
+      function(err, res) {
+        console.log(res.affectedRows + " employee updated!\n");
 
-
-// const employeeTable = cTable.getTable([
-//     {
-//       name: 'foo',
-//       age: 10
-//     }, {
-//       name: 'bar',
-//       age: 20
-//     }
-//   ]);
-  
-//   console.log(employeeTable);
+      }
+    );
+  }
 
 
 
