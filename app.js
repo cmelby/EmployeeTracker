@@ -213,16 +213,18 @@ function addDepartment() {
   }
 //============= View All Employees ==========================//
     function viewAllEmployees() {
-        readEmployeeItems().then(
-            function(err) {
-                if (err) throw err
-                console.log("You just added an employee");
-                startPrompt();
-            }
-        )
+      connection.query("SELECT employee.first_name, employee.last_name, role.title, role.salary, department.name AS Department FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id ORDER BY employee.id", 
+      function(err, res) {
+        if (err) throw err
+    console.log(res);
        
-    }
-
+    }).then(function(err, res) {
+      if (err) throw err
+     employeeTable = printTable(res);
+    
+    })
+    return employeeTable;
+  }
 //============= View Employees By Department ==========================//
 //  function viewAllRoles() {
 //     readRoleItems().then(
@@ -275,12 +277,12 @@ function addDepartment() {
 
 //================ Read Items =================================//
 //Employee Table...........
-function readEmployeeItems(cb) {
-    connection.query("SELECT * FROM employee ", function(err, res) {
-        if (err) throw err;
-        cb(res);
-    })
-}
+// function readEmployeeItems(cb) {
+//     connection.query("SELECT * FROM employee ", function(err, res) {
+//         if (err) throw err;
+//         cb(res);
+//     })
+// }
 //Role table.............
 // function readRoleItems(cb) {
 //     connection.query("SELECT * FROM role ", function(err, res) {
@@ -298,7 +300,10 @@ function readEmployeeItems(cb) {
 
 
 
-
+function printTable(res) {
+  var viewTable = cTable.getTable([{res}])
+  return viewTable;
+}
 
 
 
@@ -314,28 +319,5 @@ function readEmployeeItems(cb) {
   
 //   console.log(employeeTable);
 
-// const roleTable = cTable.getTable([
-//     {
-//       name: 'foo',
-//       age: 10
-//     }, {
-//       name: 'bar',
-//       age: 20
-//     }
-//   ]);
-  
-//   console.log(roleTable);
-
-// const departmentTable = cTable.getTable([
-//     {
-//       name: 'foo',
-//       age: 10
-//     }, {
-//       name: 'bar',
-//       age: 20
-//     }
-//   ]);
-  
-//   console.log(departmentTable);
 
 
