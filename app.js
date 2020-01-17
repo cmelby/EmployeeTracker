@@ -76,6 +76,7 @@ function startPrompt() {
 // addEmployee();
 //============= Add Employee ==========================//
 function addEmployee() { 
+
   connection.query("SELECT * FROM employee", function(err, results) {
     if (err) throw err;
     inquirer.prompt([
@@ -93,36 +94,22 @@ function addEmployee() {
           name: "role",
           type: "list",
           message: "What is their role? ",
-          choices: [
-                    "Sales Lead",
-                    "Salesperson",
-                    "Lead Engineer",
-                    "Software Egineer",
-                    "Account Manager",
-                    "Accountant",
-                    "Leagal Team Lead"
-          ]
+          choices: selectRole(),
         },
         {
             name: "choice",
             type: "rawlist",
-            choices: function() {
-              var choiceArray = [];
-              for (var i = 0; i < results.length; i++) {
-                choiceArray.push(results[i].manager_id); //coem back to fix manager id//
-              }
-              return choiceArray;
-            },
+            choices: selectManager(),
             message: "Whats their managers name?"
-          }
+        }
     ]).then(function(val) {
         var query = connection.query(
             "INSERT INTO employee SET ?",
             {
               first_name: val.firstname,
               last_name: val.lastname,
-              role: val.role,
-              choices: val.choice
+              id: val.role,
+              manager_id: val.choice
             },
             function(err) {
                 if (err) throw err
@@ -132,6 +119,31 @@ function addEmployee() {
         )   
     });
   });
+}
+
+function selectRole() {
+  var roleArr = [];
+  connection.query("SELECT title, id FROM role", function(err, res) {
+    if (err) throw err
+    for (var i = 0; i < res.length; i++) {
+      roleArr.push(res[i].title + res[i].id);
+    }
+
+  })
+  return roleArr;
+}
+
+function selectManager() {
+  var managersArr = [];
+  connection.query("SELECT first_name, last_name FROM employee WHERE manager_id IS NULL", function(err, res) {
+    if (err) throw err
+    
+    for (var i = 0; i < res.length; i++) {
+      managersArr.push(res[i].first_name);
+    }
+
+  })
+  return managersArr;
 }
 
 //============= Add Employee Role ==========================//
@@ -191,16 +203,16 @@ function addDepartment() {
  
   }
 //============= View All Employees ==========================//
-    // function viewAllEmployees(){
-    //     readEmployeeItems().then(
-    //         function(err) {
-    //             if (err) throw err
-    //             console.log("You just added an employee");
-    //             startPrompt();
-    //         }
-    //     )
+    function viewAllEmployees() {
+        readEmployeeItems().then(
+            function(err) {
+                if (err) throw err
+                console.log("You just added an employee");
+                startPrompt();
+            }
+        )
        
-    // }
+    }
 
 //============= View Employees By Department ==========================//
 //  function viewAllRoles() {
@@ -254,12 +266,12 @@ function addDepartment() {
 
 //================ Read Items =================================//
 //Employee Table...........
-// function readEmployeeItems(cb) {
-//     connection.query("SELECT * FROM employee ", function(err, res) {
-//         if (err) throw err;
-//         cb(res);
-//     })
-// }
+function readEmployeeItems(cb) {
+    connection.query("SELECT * FROM employee ", function(err, res) {
+        if (err) throw err;
+        cb(res);
+    })
+}
 //Role table.............
 // function readRoleItems(cb) {
 //     connection.query("SELECT * FROM role ", function(err, res) {
