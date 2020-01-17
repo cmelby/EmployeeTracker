@@ -6,14 +6,8 @@ const cTable = require('console.table');
 
 const connection = mysql.createConnection({
     host: "localhost",
-  
-    // Your port; if not 3306
     port: 3306,
-  
-    // Your username
     user: "root",
-  
-    // Your password
     password: "password",
     database: "employee_trackerDB"
   });
@@ -73,7 +67,7 @@ function startPrompt() {
     })
 }
 
-// addEmployee();
+
 //============= Add Employee ==========================//
 function addEmployee() { 
 
@@ -103,13 +97,27 @@ function addEmployee() {
             message: "Whats their managers name?"
         }
     ]).then(function(val) {
-        var query = connection.query(
+      var roleId;
+      var managerId;
+      for (var i = 0; val.length; i++) {
+        if (results[i] === val.role) {
+          roleId = results[i]
+        } else if (results[i] === val.choice) {
+          managerId = results[i]
+        }
+        // return roleId && managerId; 
+        console.log(roleId);
+        console.log(managerId);
+      }
+
+       connection.query(
             "INSERT INTO employee SET ?",
             {
               first_name: val.firstname,
               last_name: val.lastname,
-              id: val.role,
-              manager_id: val.choice
+              // manager_id: val.choice,
+              // role_id: val.titleId
+              
             },
             function(err) {
                 if (err) throw err
@@ -120,24 +128,25 @@ function addEmployee() {
     });
   });
 }
-
+//================= Select Role Quieries Role Title for Add Employee Prompt ===========//
 function selectRole() {
   var roleArr = [];
   connection.query("SELECT title, id FROM role", function(err, res) {
+    console.log(res)
     if (err) throw err
     for (var i = 0; i < res.length; i++) {
-      roleArr.push(res[i].title + res[i].id);
+      roleArr.push(res[i].title);
     }
 
   })
   return roleArr;
 }
-
+//================= Select Role Quieries The Managers for Add Employee Prompt ===========//
 function selectManager() {
   var managersArr = [];
   connection.query("SELECT first_name, last_name FROM employee WHERE manager_id IS NULL", function(err, res) {
     if (err) throw err
-    
+    console.log(res)
     for (var i = 0; i < res.length; i++) {
       managersArr.push(res[i].first_name);
     }
@@ -161,7 +170,7 @@ function addRole() {
 
         } 
     ]).then(function(answer) {
-        var query = connection.query(
+        connection.query(
             "INSERT INTO role SET ?",
             {
               title: answer.title,
