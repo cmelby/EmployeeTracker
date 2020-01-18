@@ -1,7 +1,6 @@
 //======== Dependencies===================//
 const inquirer = require("inquirer")
 const mysql = require("mysql")
-const consoleTable = require("console.table")
 const cTable = require('console.table');
 
 const connection = mysql.createConnection({
@@ -19,7 +18,6 @@ connection.connect(function(err) {
     console.log("Connected as Id" + connection.threadId)
     startPrompt();
 });
-
 //================== Initial Prompt =======================//
 function startPrompt() {
     inquirer.prompt([
@@ -27,19 +25,36 @@ function startPrompt() {
     type: "list",
     message: "What would you like to do?",
     name: "choice",
-    choices: ["Add Employee?",
-              "Add Role?",
-              "Add Department?",
+    choices: [
               "View All Employees?", 
               "View All Employee's By Roles?",
               "View all Emplyees By Deparments", 
-              "Update Employee"
+              "Update Employee",
+              "Add Employee?",
+              "Add Role?",
+              "Add Department?"
+         
             ]
     }
 ]).then(function(val) {
         switch (val.choice) {
-            case "Add Employee?":
+            case "View All Employees?":
+              viewAllEmployees();
+            break;
+    
+          case "View All Employee's By Roles?":
+              viewAllRoles();
+            break;
+          case "View all Emplyees By Deparments":
+              viewAllDepartments();
+            break;
+          
+          case "Add Employee?":
                 addEmployee();
+              break;
+
+          case "Update Employee":
+                updateEmployee();
               break;
       
             case "Add Role?":
@@ -49,20 +64,7 @@ function startPrompt() {
             case "Add Department?":
                 addDepartment();
               break;
-      
-            case "View All Employees?":
-                viewAllEmployees();
-              break;
-      
-            case "View All Employee's By Roles?":
-                viewAllRoles();
-              break;
-            case "View all Emplyees By Deparments":
-                viewAllDepartments();
-              break;
-            case "Update Employee":
-                updateEmployee();
-              break;
+    
             }
     })
 }
@@ -73,9 +75,7 @@ function viewAllEmployees() {
       if (err) throw err
       console.table(res)
       startPrompt()
-    
   })
-
 }
 //============= View All Roles ==========================//
 function viewAllRoles() {
@@ -85,7 +85,6 @@ function viewAllRoles() {
   console.table(res)
   startPrompt()
   })
-
 }
 //============= View All Employees By Departments ==========================//
 function viewAllDepartments() {
@@ -95,14 +94,12 @@ function viewAllDepartments() {
     console.table(res)
     startPrompt()
   })
-
 }
 
 //================= Select Role Quieries Role Title for Add Employee Prompt ===========//
 var roleArr = [];
 function selectRole() {
   connection.query("SELECT * FROM role", function(err, res) {
-    // console.log(res)
     if (err) throw err
     for (var i = 0; i < res.length; i++) {
       roleArr.push(res[i].title);
@@ -116,7 +113,6 @@ var managersArr = [];
 function selectManager() {
   connection.query("SELECT first_name, last_name FROM employee WHERE manager_id IS NULL", function(err, res) {
     if (err) throw err
-    // console.log(res)
     for (var i = 0; i < res.length; i++) {
       managersArr.push(res[i].first_name);
     }
@@ -148,35 +144,96 @@ function addEmployee() {
             type: "rawlist",
             message: "Whats their managers name?",
             choices: selectManager()
-           
         }
-    ]).then(function (answers) {
-      var roleId = selectRole().indexOf(answers.role) + 1
-      var managerId = selectManager().indexOf(answers.choice) + 1
-      connection.query("INSERT INTO employee SET ?", {
-          first_name: answers.firstName,
-          last_name: answers.lastName,
+    ]).then(function (val) {
+      var roleId = selectRole().indexOf(val.role) + 1
+      var managerId = selectManager().indexOf(val.choice) + 1
+      connection.query("INSERT INTO employee SET ?", 
+      {
+          first_name: val.firstName,
+          last_name: val.lastName,
           manager_id: managerId,
           role_id: roleId
+          
       }, function(err){
           if (err) throw err
-          console.table(answers)
+          console.table(val)
           startPrompt()
       })
 
   })
 }
+//================= Select Role Quieries The Managers for Add Employee Prompt ===========//
+var updateRoleArr = [];
+function updateRole() {
+  connection.query("SELECT role.title FROM role", function(err, res) {
+    if (err) throw err
+    for (var i = 0; i < res.length; i++) {
+      updateRoleArr.push(res[i].title);
+    }
 
+  })
+  return updateRoleArr;
+}
+//============= Update Employee ==========================//
+  function updateEmployee() {
+    connection.query("SELECT employee.last_name FROM employee", function(err, res) {
+    // console.log(res)
+     if (err) throw err
+    inquirer.prompt([
+          {
+            name: "lastName",
+            type: "rawlist",
+            choices: function() {
+              var firstNameArray = [];
+              for (var i = 0; i < res.length; i++) {
+                firstNameArray.push(res[i].last_name);
+              }
+              return firstNameArray;
+            },
+            message: "What is the Employee's last name? ",
+          },
+          {
+            name: "role",
+            type: "rawlist",
+            message: "What is the Employees new title? ",
+            choices: updateRole()
+          },
+
+      ]).then(function (val) {
+        console.table(val)
+        startPrompt()
+        // var roleId = updateRole().indexOf(val.role) + 1
+        // connection.query("UPDATE employee SET ?", 
+        // {
+        //   last_name: val.lastName,
+           
+        // }, 
+        // {
+        //   role_id: roleId
+           
+        // }, 
+        // function(err){
+        //     if (err) throw err
+        //     console.table(val)
+        //     startPrompt()
+        // })
+  
+    });
+  });
+
+  }
 //============= Add Employee Role ==========================//
 function addRole() { 
+  connection.query("SELECT role.title AS Title, role.salary AS Salary FROM role",   function(err, res) {
     inquirer.prompt([
         {
-          name: "title",
+          name: "Title",
           type: "input",
           message: "What is the roles Title?"
         },
         {
-          name: "salary",
+          name: "Salary",
           type: "input",
           message: "What is the Salary?"
 
@@ -185,8 +242,8 @@ function addRole() {
         connection.query(
             "INSERT INTO role SET ?",
             {
-              title: res.title,
-              salary: res.salary,
+              title: res.Title,
+              salary: res.Salary,
             },
             function(err) {
                 if (err) throw err
@@ -196,10 +253,11 @@ function addRole() {
         )
 
     });
- 
+  });
   }
 //============= Add Department ==========================//
 function addDepartment() { 
+
     inquirer.prompt([
         {
           name: "name",
@@ -208,84 +266,18 @@ function addDepartment() {
         }
     ]).then(function(res) {
         var query = connection.query(
-            "INSERT INTO department SET ?",
+            "INSERT INTO department SET ? ",
             {
               name: res.name
             
             },
-            function(err, res) {
+            function(err) {
                 if (err) throw err
                 console.table(res);
                 startPrompt();
             }
         )
-  
-    });
- 
+    })
   }
-//================= Select Role Quieries The Managers for Add Employee Prompt ===========//
-// var updateRoleArr = [];
-// function updateRole() {
-//   connection.query("SELECT * FROM role", function(err, res) {
-//     if (err) throw err
-//     console.log(res)
-//     for (var i = 0; i < res.length; i++) {
-//       updateRoleArr.push(res[i].role_id);
-//     }
 
-//   })
-//   return updateRoleArr;
-// }
-//================= Select Role Quieries The Managers for Add Employee Prompt ===========//
-// var updateEmployeeArr = [];
-// function updateEmployee() {
-//   connection.query("SELECT frist_name FROM employee", function(err, res) {
-//     if (err) throw err
-//     console.log(res)
-//     for (var i = 0; i < res.length; i++) {
-//       updateEmployeeArr.push(res[i].first_name);
-//     }
-
-//   })
-//   return updateEmployeeArr;
-// }
-//============= Update Employee ==========================//
-  function updateEmployee() {
-    connection.query("SELECT employee.first_name, role.title FROM employee JOIN role ON employee.role_id = role.id;", function(err, results) {
-      if (err) throw err
-    inquirer.prompt([
-          {
-            name: "name",
-            type: "input",
-            message: "What is the Employee's name? ",
-            choices: 
-          },
-          {
-            name: "newRole",
-            type: "rawlist",
-            message: "What is the Employees new title? ",
-            choices: 
-          },
-      ]).then(function (answers) {
-        var newRoleId = selectRole().indexOf(answers.newRole) + 1
-        connection.query("UPDATE employee SET ? WHERE ?", 
-        {
-            first_name: answers.firstName
-           
-        }, 
-        {
-            role_id: newRoleId
-           
-        }, 
-        function(err){
-            if (err) throw err
-            console.table(answers)
-            startPrompt()
-        })
-  
-    });
-  });
-
-  }
-  
   
