@@ -33,7 +33,6 @@ function startPrompt() {
               "Add Employee?",
               "Add Role?",
               "Add Department?"
-         
             ]
     }
 ]).then(function(val) {
@@ -163,33 +162,22 @@ function addEmployee() {
 
   })
 }
-//================= Select Role Quieries The Managers for Add Employee Prompt ===========//
-var updateRoleArr = [];
-function updateRole() {
-  connection.query("SELECT role.title FROM role", function(err, res) {
-    if (err) throw err
-    for (var i = 0; i < res.length; i++) {
-      updateRoleArr.push(res[i].title);
-    }
-
-  })
-  return updateRoleArr;
-}
 //============= Update Employee ==========================//
   function updateEmployee() {
-    connection.query("SELECT employee.last_name FROM employee", function(err, res) {
+    connection.query("SELECT employee.last_name, role.title FROM employee JOIN role ON employee.role_id = role.id;", function(err, res) {
     // console.log(res)
      if (err) throw err
+     console.log(res)
     inquirer.prompt([
           {
             name: "lastName",
             type: "rawlist",
             choices: function() {
-              var firstNameArray = [];
+              var lastName = [];
               for (var i = 0; i < res.length; i++) {
-                firstNameArray.push(res[i].last_name);
+                lastName.push(res[i].last_name);
               }
-              return firstNameArray;
+              return lastName;
             },
             message: "What is the Employee's last name? ",
           },
@@ -197,27 +185,24 @@ function updateRole() {
             name: "role",
             type: "rawlist",
             message: "What is the Employees new title? ",
-            choices: updateRole()
+            choices: selectRole()
           },
-
-      ]).then(function (val) {
-        console.table(val)
-        startPrompt()
-        // var roleId = updateRole().indexOf(val.role) + 1
-        // connection.query("UPDATE employee SET ?", 
-        // {
-        //   last_name: val.lastName,
+      ]).then(function(val) {
+        var roleId = selectRole().indexOf(val.role) + 1
+        connection.query("UPDATE employee SET WHERE ?", 
+        {
+          last_name: val.lastName
            
-        // }, 
-        // {
-        //   role_id: roleId
+        }, 
+        {
+          role_id: roleId
            
-        // }, 
-        // function(err){
-        //     if (err) throw err
-        //     console.table(val)
-        //     startPrompt()
-        // })
+        }, 
+        function(err){
+            if (err) throw err
+            console.table(val)
+            startPrompt()
+        })
   
     });
   });
